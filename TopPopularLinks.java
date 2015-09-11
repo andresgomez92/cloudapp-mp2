@@ -157,9 +157,9 @@ public class TopPopularLinks extends Configured implements Tool {
         @Override
         public void reduce(NullWritable key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
             for (IntArrayWritable val: values) {
-                Integer[] pair= (Integer[]) val.toArray();
-                Integer link = pair[0];
-                Integer count = pair[1];
+                IntWritable[] pair= (IntWritable[]) val.toArray();
+                Integer link = pair[0].get();
+                Integer count = pair[1].get();
                 countToLinkMap.add(new Pair<Integer, Integer>(count, link));
 
                 if (countToLinkMap.size() > this.N) {
