@@ -190,11 +190,11 @@ public class PopularityLeague extends Configured implements Tool {
                 IntWritable link = new IntWritable(item.second);
                 context.write(link, new IntWritable(rank));
 
-                if(aux < value.get()) {
+                if(aux < item.first) {
                 	rank++;
                 }
-                
-                aux = value.get();
+
+                aux = item.first;
             }
         }    
     }
