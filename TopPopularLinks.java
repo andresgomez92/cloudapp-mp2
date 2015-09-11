@@ -163,7 +163,7 @@ public class TopPopularLinks extends Configured implements Tool {
                 countToLinkMap.add(new Pair<Integer, String>(count, link));
 
                 if (countToLinkMap.size() > this.N) {
-                    countToLinkMap.remove(countToWordMap.first());
+                    countToLinkMap.remove(countToLinkMap.first());
                 }
             }
 
