@@ -64,7 +64,7 @@ public class OrphanPages extends Configured implements Tool {
             for (IntWritable v : values) {
                 count += v.get();
             }
-            if(count > 1) {
+            if(count == 1) {
               context.write(key, NullWritable.get());
             }
         }
