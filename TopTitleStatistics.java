@@ -224,7 +224,7 @@ public class TopTitleStatistics extends Configured implements Tool {
 
             Integer varSum = 0;
             for(Integer i : intList) {
-                varSum = varSum + Math.pow(i - mean, 2);
+                varSum = varSum + new Integer(Math.pow(i - mean, 2));
             }
 
             var = new Integer(varSum/count);
