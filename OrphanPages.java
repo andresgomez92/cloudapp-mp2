@@ -48,7 +48,7 @@ public class OrphanPages extends Configured implements Tool {
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-           String[] line = value.toString().split(':');
+           String[] line = value.toString().split(":");
            Integer page = Integer.parseInt(line[0].trim());
            StringTokenizer tokenizer = new StringTokenizer(line[1], " ");
            context.write(new IntWritable(page), new IntWritable(0)); 
