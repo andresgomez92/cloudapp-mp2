@@ -105,7 +105,7 @@ public class TopPopularLinks extends Configured implements Tool {
 
     public static class LinkCountReduce extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
         @Override
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
             int count = 0;
             for (IntWritable v : values) {
                 count += v.get();
@@ -137,7 +137,7 @@ public class TopPopularLinks extends Configured implements Tool {
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
             for (Pair<Integer, Integer> item : countToLinkMap) {
-                Integer[] strings = {item.second, item.first.toString()};
+                Integer[] strings = {item.second, item.first};
                 IntArrayWritable val = new IntArrayWritable(strings);
                 context.write(NullWritable.get(), val);
             }
