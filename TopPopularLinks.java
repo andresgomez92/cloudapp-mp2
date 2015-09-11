@@ -73,7 +73,7 @@ public class TopPopularLinks extends Configured implements Tool {
         jobB.setOutputValueClass(IntWritable.class);
 
         jobB.setMapOutputKeyClass(NullWritable.class);
-        jobB.setMapOutputValueClass(TextArrayWritable.class);
+        jobB.setMapOutputValueClass(IntArrayWritable.class);
 
         jobB.setMapperClass(TopLinksMap.class);
         jobB.setReducerClass(TopLinksReduce.class);
@@ -87,22 +87,6 @@ public class TopPopularLinks extends Configured implements Tool {
 
         jobB.setJarByClass(TopTitles.class);
         return jobB.waitForCompletion(true) ? 0 : 1;
-    }
-
-    
-    public static class TextArrayWritable extends ArrayWritable {
-        public TextArrayWritable() {
-            super(Text.class);
-        }
-
-        public TextArrayWritable(String[] strings) {
-            super(Text.class);
-            Text[] texts = new Text[strings.length];
-            for (int i = 0; i < strings.length; i++) {
-                texts[i] = new Text(strings[i]);
-            }
-            set(texts);
-        }
     }
 
     public static class LinkCountMap extends Mapper<Object, Text, IntWritable, IntWritable> {
@@ -132,7 +116,7 @@ public class TopPopularLinks extends Configured implements Tool {
 
     public static class TopLinksMap extends Mapper<Text, Text, NullWritable, IntArrayWritable> {
         Integer N;
-        private TreeSet<Pair<Integer, String>> countToLinkMap = new TreeSet<Pair<Integer, String>>();
+        private TreeSet<Pair<Integer, Integer>> countToLinkMap = new TreeSet<Pair<Integer, Integer>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -143,8 +127,8 @@ public class TopPopularLinks extends Configured implements Tool {
         @Override
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
             Integer count = Integer.parseInt(value.toString());
-            String link = key.toString();
-            countToLinkMap.add(new Pair<Integer, String>(count, link));
+            Integer link = Integer.parseInt(key.toString());
+            countToLinkMap.add(new Pair<Integer, Integer>(count, link));
             if (countToLinkMap.size() > this.N) {
                 countToLinkMap.remove(countToLinkMap.first());
             }
@@ -152,9 +136,9 @@ public class TopPopularLinks extends Configured implements Tool {
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            for (Pair<Integer, String> item : countToLinkMap) {
-                String[] strings = {item.second, item.first.toString()};
-                TextArrayWritable val = new TextArrayWritable(strings);
+            for (Pair<Integer, Integer> item : countToLinkMap) {
+                Integer[] strings = {item.second, item.first.toString()};
+                IntArrayWritable val = new IntArrayWritable(strings);
                 context.write(NullWritable.get(), val);
             }
         }
@@ -162,7 +146,7 @@ public class TopPopularLinks extends Configured implements Tool {
 
     public static class TopLinksReduce extends Reducer<NullWritable, IntArrayWritable, IntWritable, IntWritable> {
         Integer N;
-        private TreeSet<Pair<Integer, String>> countToLinkMap = new TreeSet<Pair<Integer, String>>();
+        private TreeSet<Pair<Integer, Integer>> countToLinkMap = new TreeSet<Pair<Integer, Integer>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -171,19 +155,19 @@ public class TopPopularLinks extends Configured implements Tool {
         }
 
         @Override
-        public void reduce(NullWritable key, Iterable<TextArrayWritable> values, Context context) throws IOException, InterruptedException {
-            for (TextArrayWritable val: values) {
+        public void reduce(NullWritable key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
+            for (IntArrayWritable val: values) {
                 Text[] pair= (Text[]) val.toArray();
-                String link = pair[0].toString();
-                Integer count = Integer.parseInt(pair[1].toString());
-                countToLinkMap.add(new Pair<Integer, String>(count, link));
+                Integer link = pair[0];
+                Integer count = pair[1];
+                countToLinkMap.add(new Pair<Integer, Integer>(count, link));
 
                 if (countToLinkMap.size() > this.N) {
                     countToLinkMap.remove(countToLinkMap.first());
                 }
             }
 
-            for (Pair<Integer, String> item: countToLinkMap) {
+            for (Pair<Integer, Integer> item: countToLinkMap) {
                 Text link = new Text(item.second);
                 IntWritable value = new IntWritable(item.first);
                 context.write(link, value);
