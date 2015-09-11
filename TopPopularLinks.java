@@ -89,6 +89,22 @@ public class TopPopularLinks extends Configured implements Tool {
         return jobB.waitForCompletion(true) ? 0 : 1;
     }
 
+    
+    public static class TextArrayWritable extends ArrayWritable {
+        public TextArrayWritable() {
+            super(Text.class);
+        }
+
+        public TextArrayWritable(String[] strings) {
+            super(Text.class);
+            Text[] texts = new Text[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                texts[i] = new Text(strings[i]);
+            }
+            set(texts);
+        }
+    }
+
     public static class LinkCountMap extends Mapper<Object, Text, IntWritable, IntWritable> {
         String delimiters = " :";
 
