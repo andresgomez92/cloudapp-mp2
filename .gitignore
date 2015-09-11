@@ -9,6 +9,7 @@ __pycache__/
 build/
 *.class
 *.jar
+internal_use/
 
 # Distribution / packaging
 .Python
