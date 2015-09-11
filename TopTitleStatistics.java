@@ -203,8 +203,8 @@ public class TopTitleStatistics extends Configured implements Tool {
             for (TextArrayWritable val: values) {
                 Text[] pair= (Text[]) val.toArray();
                 String word = pair[0].toString();
-                Integer count = Integer.parseInt(pair[1].toString());
-                countToWordMap.add(new Pair<Integer, String>(count, word));
+                Integer wordCount = Integer.parseInt(pair[1].toString());
+                countToWordMap.add(new Pair<Integer, String>(wordCount, word));
 
                 if (countToWordMap.size() > this.N) {
                     countToWordMap.remove(countToWordMap.first());
