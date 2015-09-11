@@ -162,12 +162,12 @@ public class TopPopularLinks extends Configured implements Tool {
                 Integer count = Integer.parseInt(pair[1].toString());
                 countToLinkMap.add(new Pair<Integer, String>(count, link));
 
-                if (countToWordMap.size() > this.N) {
-                    countToWordMap.remove(countToWordMap.first());
+                if (countToLinkMap.size() > this.N) {
+                    countToLinkMap.remove(countToWordMap.first());
                 }
             }
 
-            for (Pair<Integer, String> item: countToWordMap) {
+            for (Pair<Integer, String> item: countToLinkMap) {
                 Text link = new Text(item.second);
                 IntWritable value = new IntWritable(item.first);
                 context.write(link, value);
