@@ -69,7 +69,7 @@ public class OrphanPages extends Configured implements Tool {
                 count++;
             }
 
-            if((count <= 1) && ((count - 1).equals(sum))) {
+            if((count <= 1) && ((count - 1) == sum)) {
               context.write(key, NullWritable.get());
             }
         }
