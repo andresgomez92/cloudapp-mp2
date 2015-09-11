@@ -185,18 +185,18 @@ public class PopularityLeague extends Configured implements Tool {
 
             Integer aux = 0;
             Integer rank = 0;
-            Integer last_rank = 0;
+            Integer lastRank = 0;
             for (Pair<Integer, Integer> item: countToLinkMap) {
                 IntWritable link = new IntWritable(item.second);
 
                 if(aux >= item.first) {
-                  context.write(link, new IntWritable(last_rank));
+                  context.write(link, new IntWritable(lastRank));
                 } else {
+                  lastRank = rank;
                   context.write(link, new IntWritable(rank));
-                  last_rank++;
                 }
 
-                rank++;
+				rank++;
                 aux = item.first;
             }
         }    
