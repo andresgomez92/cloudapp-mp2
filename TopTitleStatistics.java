@@ -19,6 +19,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.Math;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -126,20 +131,31 @@ public class TopTitleStatistics extends Configured implements Tool {
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            // TODO
+           String line = value.toString();
+           StringTokenizer tokenizer = new StringTokenizer(line, this.delimiters);
+           while (tokenizer.hasMoreTokens()) {
+               String nextToken = tokenizer.nextToken().trim().toLowerCase();
+               if (!this.stopWords.contains(nextToken)) {
+                  context.write(new Text(nextToken), new IntWritable(1)); 
+               } 
+           }  
         }
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            // TODO
+            int count = 0;
+            for (IntWritable v : values) {
+                count += v.get();
+            }
+            context.write(key, new IntWritable(count));
         }
     }
 
     public static class TopTitlesStatMap extends Mapper<Text, Text, NullWritable, TextArrayWritable> {
         Integer N;
-        // TODO
+        private TreeSet<Pair<Integer, String>> countToWordMap = new TreeSet<Pair<Integer, String>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -149,18 +165,27 @@ public class TopTitleStatistics extends Configured implements Tool {
 
         @Override
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-            // TODO
+            Integer count = Integer.parseInt(value.toString());
+            String word = key.toString();
+            countToWordMap.add(new Pair<Integer, String>(count, word));
+            if (countToWordMap.size() > this.N) {
+                countToWordMap.remove(countToWordMap.first());
+            }
         }
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            // TODO
+            for (Pair<Integer, String> item : countToWordMap) {
+                String[] strings = {item.second, item.first.toString()};
+                TextArrayWritable val = new TextArrayWritable(strings);
+                context.write(NullWritable.get(), val);
+            }
         }
     }
 
     public static class TopTitlesStatReduce extends Reducer<NullWritable, TextArrayWritable, Text, IntWritable> {
         Integer N;
-        // TODO
+        private TreeSet<Pair<Integer, String>> countToWordMap = new TreeSet<Pair<Integer, String>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -170,9 +195,39 @@ public class TopTitleStatistics extends Configured implements Tool {
 
         @Override
         public void reduce(NullWritable key, Iterable<TextArrayWritable> values, Context context) throws IOException, InterruptedException {
-            Integer sum, mean, max, min, var;
+            Integer mean, max, min, var;
+            Integer sum = 0;
+            Integer count = 0;
+            List<Integer> intList = new ArrayList<Integer>();
 
-            // TODO
+            for (TextArrayWritable val: values) {
+                Text[] pair= (Text[]) val.toArray();
+                String word = pair[0].toString();
+                Integer count = Integer.parseInt(pair[1].toString());
+                countToWordMap.add(new Pair<Integer, String>(count, word));
+
+                if (countToWordMap.size() > this.N) {
+                    countToWordMap.remove(countToWordMap.first());
+                }
+            }
+
+
+            for (Pair<Integer, String> item: countToWordMap) {
+                intList.add(item.first);
+                sum = sum + item.first;
+                count++;
+            }
+
+            mean = new Integer(sum/count);
+            max = Collections.max(intList);
+            min = Collections.min(intList);
+
+            Integer varSum = 0;
+            for(Integer i : intList) {
+                varSum = varSum + Math.pow(i - mean, 2);
+            }
+
+            var = new Integer(varSum/count);
 
             context.write(new Text("Mean"), new IntWritable(mean));
             context.write(new Text("Sum"), new IntWritable(sum));
