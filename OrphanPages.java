@@ -44,12 +44,14 @@ public class OrphanPages extends Configured implements Tool {
     }
 
     public static class LinkCountMap extends Mapper<Object, Text, IntWritable, IntWritable> {
-        String delimiters = " :";
+        String delimiters = " ";
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-           String line = value.toString();
-           StringTokenizer tokenizer = new StringTokenizer(line, this.delimiters);
+           String[] line = value.toString().split(':');
+           Integer page = Integer.parseInt(line[0].trim());
+           StringTokenizer tokenizer = new StringTokenizer(line[1], " ");
+           context.write(new IntWritable(page), new IntWritable(0)); 
            while (tokenizer.hasMoreTokens()) {
                Integer nextToken = Integer.parseInt(tokenizer.nextToken().trim());
                context.write(new IntWritable(nextToken), new IntWritable(1)); 
@@ -60,11 +62,14 @@ public class OrphanPages extends Configured implements Tool {
     public static class OrphanPageReduce extends Reducer<IntWritable, IntWritable, IntWritable, NullWritable> {
         @Override
         public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            int count = 0;
+            Integer count = 0;
+            Integer sum = 0;
             for (IntWritable v : values) {
-                count += v.get();
+                sum += v.get();
+                count++;
             }
-            if(count <= 1) {
+
+            if((count <= 1) && ((count - 1).equals(sum))) {
               context.write(key, NullWritable.get());
             }
         }
